@@ -1,0 +1,13 @@
+Flask
+Flask-SQLAlchemy
+Flask-Bcrypt
+Flask-DotEnv
+flask-cors
+flask-wtf
+email_validator
+python-dotenv
+flask-jwt-extended
+matplotlib
+Faker
+Flask-Caching
+flask_migrate
