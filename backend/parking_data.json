@@ -1,0 +1,63 @@
+{
+  "locations": [
+    {
+      "name": "Connaught Place",
+      "city": "New Delhi",
+      "latitude": 28.6315,
+      "longitude": 77.2167,
+      "lots": [
+        {
+          "prime_location_name": "CP Central Parking",
+          "price": 30,
+          "address": "Block A, Connaught Place, New Delhi",
+          "pin_code": "110001",
+          "number_of_spots": 15
+        },
+        {
+          "prime_location_name": "CP Metro Parking",
+          "price": 25,
+          "address": "Rajiv Chowk Metro Station, New Delhi",
+          "pin_code": "110001",
+          "number_of_spots": 20
+        }
+      ]
+    },
+    {
+      "name": "Cyber Hub",
+      "city": "Gurgaon",
+      "latitude": 28.4946,
+      "longitude": 77.0895,
+      "lots": [
+        {
+          "prime_location_name": "Cyber Hub Entry Lot",
+          "price": 40,
+          "address": "DLF Cyber City, Gurgaon",
+          "pin_code": "122002",
+          "number_of_spots": 25
+        },
+        {
+          "prime_location_name": "Cyber Greens Parking",
+          "price": 35,
+          "address": "DLF Phase III, Sector 25, Gurgaon",
+          "pin_code": "122002",
+          "number_of_spots": 15
+        }
+      ]
+    },
+    {
+      "name": "Marine Drive",
+      "city": "Mumbai",
+      "latitude": 18.9430,
+      "longitude": 72.8238,
+      "lots": [
+        {
+          "prime_location_name": "Marine Drive North Lot",
+          "price": 45,
+          "address": "Netaji Subhash Chandra Bose Rd, Mumbai",
+          "pin_code": "400020",
+          "number_of_spots": 30
+        }
+      ]
+    }
+  ]
+}
