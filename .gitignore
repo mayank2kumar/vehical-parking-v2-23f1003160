@@ -6,3 +6,5 @@ backend/tools/__pycache__
 backend/migrations/__pycache__
 backend/__pycache__
 backend/wslenv
+frontend/node_modules
+frontend/package-lock.json
