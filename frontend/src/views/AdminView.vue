@@ -7,11 +7,16 @@
       <h2 class="text-center fw-bold text-dark-glow mb-4">Admin Dashboard</h2>
       <h4 class="text-center text-accent mb-5">Manage Parking Places</h4>
 
-      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <p class="text-light-50 mb-2 mb-sm-0">Total Available Places: {{ lots.length }}</p>
-        <button class="btn btn-glow" @click="showAddModal = true">
-          + Add Parking Places
-        </button>
+        <div class="d-flex gap-2">
+          <button class="btn btn-add-parking" @click="showAddModal = true">
+            <i class="bi bi-car-front me-1"></i> Add Parking Lot
+          </button>
+          <button class="btn btn-add-location" @click="showAddLocationModal = true">
+            <i class="bi bi-geo-alt me-1"></i> Add Location
+          </button>
+        </div>
       </div>
 
       <!-- Parking Lot Cards -->
@@ -24,8 +29,10 @@
           <div class="lot-card glass-card h-100 d-flex flex-column animate__animated animate__fadeInUp">
             <div class="card-header border-0">
               <h5 class="fw-semibold text-accent mb-0">
-                {{ lot.id }}. {{ lot.prime_location_name }}
+                {{ lot.prime_location_name }}
               </h5>
+              <p>📍 <span class="fw-semibold">Location:</span> {{ lot.location_name }} ({{ lot.city }})</p>
+
             </div>
             <div class="card-body text-light-50 flex-grow-1">
               <p>💰 <span class="fw-semibold">Price/hr:</span> ₹ {{ lot.price }}</p>
@@ -68,6 +75,12 @@
       :reservedSpots="reservedSpots"
       @close="showViewModal = false"
     />
+    <AddLocationModal 
+      v-if="showAddLocationModal"
+      @close="showAddLocationModal = false"
+      @location-added="handleLocationAdded"
+    />
+
     <EditLotModal
       v-if="showEditModal"
       :lot="selectedLot"
@@ -78,6 +91,7 @@
 </template>
 
 <script>
+import AddLocationModal from '@/components/AddLocationModal.vue';
 import NavBar from '@/components/NavBar.vue';
 import ViewLotModal from '@/components/ViewLotModal.vue';
 import EditLotModal from '@/components/EditLotModal.vue';
@@ -87,7 +101,7 @@ import { toast } from 'vue3-toastify';
 
 export default {
   name: 'AdminView',
-  components: { NavBar, ViewLotModal, EditLotModal, AddLotModal },
+  components: { NavBar, ViewLotModal, EditLotModal, AddLotModal, AddLocationModal },
   data() {
     return {
       lots: [],
@@ -97,6 +111,7 @@ export default {
       showViewModal: false,
       showEditModal: false,
       showAddModal: false,
+      showAddLocationModal: false,
       selectedLot: null,
     };
   },
@@ -128,16 +143,41 @@ export default {
     }
   },
   methods: {
+    async handleLocationAdded() {
+      this.showAddLocationModal = false;
+      // Refresh lots (so dropdown updates)
+      await this.getLots();
+    },
+
     async getLots() {
       try {
-        const res = await fetch('http://127.0.0.1:5000/parking_lots', {
+        // Fetch all lots, spots, and reservations
+        const resLots = await fetch('http://127.0.0.1:5000/parking_lots', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             Authorization: 'Bearer ' + localStorage.getItem('access_token'),
           },
         });
-        const data = await res.json();
+        const data = await resLots.json();
+
+        // Fetch all locations separately
+        const resLoc = await fetch('http://127.0.0.1:5000/get_locations', {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + localStorage.getItem('access_token'),
+          },
+        });
+        const locData = await resLoc.json();
+
+        // Build lookup: { location_id: location_name }
+        const locationMap = {};
+        if (locData.locations && locData.locations.length > 0) {
+          for (const loc of locData.locations) {
+            locationMap[loc.id] = { name: loc.name, city: loc.city };
+          }
+        }
+
         this.reservedSpots = data.reservedSpots;
         this.spots = data.spots.map((spot) => ({
           id: spot.id,
@@ -145,6 +185,7 @@ export default {
           is_available: spot.is_available,
         }));
 
+        // Build reserved lot lookup
         const spotIdToLotId = {};
         for (const spot of this.spots) spotIdToLotId[spot.id] = spot.lot_id;
 
@@ -155,17 +196,23 @@ export default {
           if (lotId) reservedLotIds.add(lotId);
         }
 
-        this.lots = data.lots.map((lot) => ({
-          id: lot.id,
-          prime_location_name: lot.prime_location_name,
-          price: lot.price,
-          address: lot.address,
-          pin_code: lot.pin_code,
-          number_of_spots: lot.number_of_spots,
-          hasReservedSpots: reservedLotIds.has(lot.id),
-        }));
+        // Attach location info to each lot
+        this.lots = data.lots.map((lot) => {
+          const locationInfo = locationMap[lot.location_id] || {};
+          return {
+            id: lot.id,
+            prime_location_name: lot.prime_location_name,
+            price: lot.price,
+            address: lot.address,
+            pin_code: lot.pin_code,
+            number_of_spots: lot.number_of_spots,
+            hasReservedSpots: reservedLotIds.has(lot.id),
+            location_name: locationInfo.name || 'Unknown',
+            city: locationInfo.city || '',
+          };
+        });
       } catch (error) {
-        toast.error('Error fetching parking lots.', { position: 'top-center' });
+        toast.error('Error fetching parking lots or locations.', { position: 'top-center' });
         console.error(error);
       }
     },
